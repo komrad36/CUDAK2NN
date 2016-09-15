@@ -41,6 +41,7 @@
 #include "device_launch_parameters.h"
 
 #include <chrono>
+#include <cstring>
 #include <iostream>
 #include <vector>
 
