@@ -6,7 +6,7 @@
 *	kareem.omar@uah.edu
 *	https://github.com/komrad36
 *
-*	Last updated Sep 12, 2016
+*	Last updated Oct 12, 2016
 *******************************************************************/
 //
 // Fastest GPU implementation of a brute-force
@@ -21,8 +21,8 @@
 // approach for binary descriptors.
 //
 // This laboriously crafted kernel is EXTREMELY fast.
-// 43 BILLION comparisons per second on a stock GTX1080,
-// enough to match nearly 38,000 descriptors per frame at 30 fps (!)
+// 63 BILLION comparisons per second on a stock GTX1080,
+// enough to match nearly 46,000 descriptors per frame at 30 fps (!)
 //
 // A key insight responsible for much of the performance of
 // this insanely fast CUDA kernel is due to
@@ -44,6 +44,7 @@
 
 #ifdef __INTELLISENSE__
 #define asm(x)
+#define min(x) 0
 #include "device_launch_parameters.h"
 #define __CUDACC__
 #include "device_functions.h"

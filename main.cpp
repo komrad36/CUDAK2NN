@@ -6,7 +6,7 @@
 *	kareem.omar@uah.edu
 *	https://github.com/komrad36
 *
-*	Last updated Sep 12, 2016
+*	Last updated Oct 12, 2016
 *******************************************************************/
 //
 // Fastest GPU implementation of a brute-force
@@ -21,8 +21,8 @@
 // approach for binary descriptors.
 //
 // This laboriously crafted kernel is EXTREMELY fast.
-// 43 BILLION comparisons per second on a stock GTX1080,
-// enough to match nearly 38,000 descriptors per frame at 30 fps (!)
+// 63 BILLION comparisons per second on a stock GTX1080,
+// enough to match nearly 46,000 descriptors per frame at 30 fps (!)
 //
 // A key insight responsible for much of the performance of
 // this insanely fast CUDA kernel is due to
@@ -102,9 +102,11 @@ int main() {
 	cudaTextureObject_t tex_q = 0;
 	cudaCreateTextureObject(&tex_q, &resDesc, &texDesc, nullptr);
 
-	// allocating and transferring query vecs as simple global
+	// allocating and transferring training vecs as simple global
+	// NOTE: always allocate 8 EXTRA AT THE END. Contents don't
+	// matter but the allocation does.
 	void* d_tvecs;
-	cudaMalloc(&d_tvecs, 64 * size);
+	cudaMalloc(&d_tvecs, 64 * (size + 8));
 	cudaMemcpy(d_tvecs, tvecs, 64 * size, cudaMemcpyHostToDevice);
 
 	// allocating space for match results

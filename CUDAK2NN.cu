@@ -6,7 +6,7 @@
 *	kareem.omar@uah.edu
 *	https://github.com/komrad36
 *
-*	Last updated Sep 12, 2016
+*	Last updated Oct 12, 2016
 *******************************************************************/
 //
 // Fastest GPU implementation of a brute-force
@@ -21,8 +21,8 @@
 // approach for binary descriptors.
 //
 // This laboriously crafted kernel is EXTREMELY fast.
-// 43 BILLION comparisons per second on a stock GTX1080,
-// enough to match nearly 38,000 descriptors per frame at 30 fps (!)
+// 63 BILLION comparisons per second on a stock GTX1080,
+// enough to match nearly 46,000 descriptors per frame at 30 fps (!)
 //
 // A key insight responsible for much of the performance of
 // this insanely fast CUDA kernel is due to
@@ -42,26 +42,28 @@ __global__ void
 #ifndef __INTELLISENSE__
 __launch_bounds__(256, 0)
 #endif
-CUDAK2NN_kernel(const cudaTextureObject_t tex_q, const int num_q, const uint64_t* const __restrict__ g_training, const int num_t, int* const __restrict__ g_match, const int threshold) {
+CUDAK2NN_kernel(const cudaTextureObject_t tex_q, const int num_q, const uint64_t* __restrict__ g_training, const int num_t, int* const __restrict__ g_match, const int threshold) {
+	uint64_t train = *(g_training += threadIdx.x & 7);
+	g_training += 8;
 	uint64_t q[8];
 	for (int i = 0, offset = ((threadIdx.x & 24) << 3) + (threadIdx.x & 7) + (blockIdx.x << 11) + (threadIdx.y << 8); i < 8; ++i, offset += 8) {
 		const uint2 buf = tex1Dfetch<uint2>(tex_q, offset);
 		asm("mov.b64 %0, {%1,%2};" : "=l"(q[i]) : "r"(buf.x), "r"(buf.y)); // some assembly required
 	}
 	int best_i, best_v = 100000, second_v = 200000;
-#pragma unroll 7
-	for (int t = 0; t < num_t; ++t) {
-		const uint64_t train = g_training[(t << 3) + (threadIdx.x & 7)];
+#pragma unroll 6
+	for (int t = 0; t < num_t; ++t, g_training += 8) {
 		uint32_t dist[4];
 		for (int i = 0; i < 4; ++i) dist[i] = __byte_perm(__popcll(q[i] ^ train), __popcll(q[i + 4] ^ train), 0x5410);
 		for (int i = 0; i < 4; ++i) dist[i] += __shfl_xor(dist[i], 1);
+		train = *g_training;
 		if (threadIdx.x & 1) dist[0] = dist[1];
 		if (threadIdx.x & 1) dist[2] = dist[3];
 		dist[0] += __shfl_xor(dist[0], 2);
 		dist[2] += __shfl_xor(dist[2], 2);
 		if (threadIdx.x & 2) dist[0] = dist[2];
 		dist[0] = __byte_perm(dist[0] + __shfl_xor(dist[0], 4), 0, threadIdx.x & 4 ? 0x5432 : 0x5410);
-		if (dist[0] < second_v) second_v = dist[0];
+		second_v = min(dist[0], second_v);
 		if (dist[0] < best_v) {
 			second_v = best_v;
 			best_i = t;
