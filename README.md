@@ -10,8 +10,8 @@ for thresholding, NOT the ratio. This is the CORRECT
 approach for binary descriptors.
 
 This laboriously crafted kernel is EXTREMELY fast.
-43 BILLION comparisons per second on a stock GTX1080,
-enough to match nearly 38,000 descriptors per frame at 30 fps (!)
+63 BILLION comparisons per second on a stock GTX1080,
+enough to match nearly 46,000 descriptors per frame at 30 fps (!)
 
 A key insight responsible for much of the performance of
 this insanely fast CUDA kernel is due to
