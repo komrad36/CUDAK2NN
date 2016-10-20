@@ -49,7 +49,7 @@ CUDAK2NN_kernel(const cudaTextureObject_t tex_q, const int num_q, const uint64_t
 	for (int i = 0, offset = ((threadIdx.x & 24) << 3) + (threadIdx.x & 7) + (blockIdx.x << 11) + (threadIdx.y << 8); i < 8; ++i, offset += 8) {
 		const uint2 buf = tex1Dfetch<uint2>(tex_q, offset);
 		asm("mov.b64 %0, {%1,%2};" : "=l"(q[i]) : "r"(buf.x), "r"(buf.y)); // some assembly required
-	}
+	}	
 	int best_i, best_v = 100000, second_v = 200000;
 #pragma unroll 6
 	for (int t = 0; t < num_t; ++t, g_training += 8) {
